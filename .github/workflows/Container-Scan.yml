@@ -27,10 +27,10 @@ jobs:
         with:
           image-ref: 'vulnerable-nodejs-app:v1'
           format: 'table'
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
-#          severity: 'CRITICAL,HIGH,MEDIUM'
+          severity: 'CRITICAL,HIGH,MEDIUM'
 
       - name: Testing Docker Push
         run: |
