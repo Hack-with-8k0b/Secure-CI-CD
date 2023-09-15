@@ -25,7 +25,7 @@ jobs:
         args: '--exit-warning'
 
   SCA:
- 
+    needs : SAST
     runs-on: ubuntu-latest
 
     steps:
@@ -64,7 +64,8 @@ jobs:
 
 
   Container-Scanning:
- 
+
+    needs: SCA
     runs-on: ubuntu-latest
 
     steps:
@@ -74,18 +75,31 @@ jobs:
       - name: Dumping Source Code
         uses: actions/checkout@v3
 
-# ~~~~~~~~~~~~~~~~~~~ Secret Scanning ~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~ Building Image ~~~~~~~~~~~~~~~~~~~
 
-      - name: Build an image from Dockerfile
+      - name: Building Docker Images
         run: |
-          docker build -t vulnerable-nodejs-app:v1 .
+          docker image build -t vulnerable-node-app:${{ github.sha }} . 
+          docker image tag vulnerable-node-app:${{ github.sha }} ${{secrets.DOCKER_REPO}}/vulnerable-node-app:${{ github.sha }}
+          docker image tag vulnerable-node-app:${{ github.sha }} ${{secrets.DOCKER_REPO}}/vulnerable-node-app:latest  
+
+# ~~~~~~~~~~~~~~~~~~~ Scanning Container Image ~~~~~~~~~~~~~~~~~~~
           
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'vulnerable-nodejs-app:v1'
+          image-ref: 'vulnerable-node-app:${{ github.sha }}'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH,MEDIUM'
+
+# ~~~~~~~~~~~~~~~~~~~ Pushing Container Image ~~~~~~~~~~~~~~~~~~~
+
+      - name: Pushing Image onto Docker Hub
+        run: |
+          docker login -u ${{secrets.DOCKER_USER}} -p ${{secrets.DOCKER_PASSWORD}}
+          docker images
+          docker image push ${{secrets.DOCKER_REPO}}/vulnerable-node-app:${{ github.sha }}
+          docker image push ${{secrets.DOCKER_REPO}}/vulnerable-node-app:latest
