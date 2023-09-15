@@ -20,14 +20,14 @@ jobs:
 
       - name: Building Docker Images
         run: |
-          docker image build -t $GITHUB_WORKFLOW:$GITHUB_RUN_ID . 
-          docker image tag $GITHUB_WORKFLOW:$GITHUB_RUN_ID ${{secrets.DOCKER_REPO}}/$GITHUB_WORKFLOW:$GITHUB_RUN_ID
-          docker image tag $GITHUB_WORKFLOW:$GITHUB_RUN_ID ${{secrets.DOCKER_REPO}}/$GITHUB_WORKFLOW:latest        
+          docker image build -t vulnerable-node-app:${{ github.sha }} . 
+          docker image tag vulnerable-node-app:${{ github.sha }} ${{secrets.DOCKER_REPO}}/vulnerable-node-app:${{ github.sha }}
+          docker image tag vulnerable-node-app:${{ github.sha }} ${{secrets.DOCKER_REPO}}/vulnerable-node-app:latest  
           
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '$GITHUB_WORKFLOW:$GITHUB_RUN_ID'
+          image-ref: 'vulnerable-node-app:${{ github.sha }}'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
@@ -38,6 +38,5 @@ jobs:
         run: |
           docker login -u ${{secrets.DOCKER_USER}} -p ${{secrets.DOCKER_PASSWORD}}
           docker images
-          docker image push ${{secrets.DOCKER_REPO}}/$GITHUB_WORKFLOW:$GITHUB_RUN_ID
-          docker image push ${{secrets.DOCKER_REPO}}/$GITHUB_WORKFLOW:latest
-          docker image rmi $GITHUB_WORKFLOW:$GITHUB_RUN_ID ${{secrets.DOCKER_REPO}}/$GITHUB_WORKFLOW:$GITHUB_RUN_ID ${{secrets.DOCKER_REPO}}/$GITHUB_WORKFLOW:latest
+          docker image push ${{secrets.DOCKER_REPO}}/vulnerable-node-app:${{ github.sha }}
+          docker image push ${{secrets.DOCKER_REPO}}/vulnerable-node-app:latest
