@@ -27,7 +27,7 @@ jobs:
               rm -rf Secure-CI-CD/
               git clone https://github.com/Hack-with-8k0b/Secure-CI-CD.git
               ls
-              cd Vulnerable-Nodejs-App
+              cd Secure-CI-CD/
               ls -la
               sudo docker-compose up -d
               sudo docker ps -a
