@@ -5,7 +5,7 @@ on:
 
 jobs:
 
-  Container-Scanning:
+  Deploy-Server:
  
     runs-on: ubuntu-latest
 
