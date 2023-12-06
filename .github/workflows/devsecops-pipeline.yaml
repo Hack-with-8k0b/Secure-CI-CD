@@ -1,7 +1,8 @@
 name: devsecops-pipeline
 
-on: push
-
+on:
+  workflow_dispatch:
+  
 jobs:
 
   SAST:
@@ -22,6 +23,63 @@ jobs:
       uses: ajinabraham/njsscan-action@master
       with:
         args: '.'
+  
+  Secrets:
+ 
+    runs-on: ubuntu-latest
+
+    steps:
+
+# ~~~~~~~~~~~~~~~~~~~ Dumping Code ~~~~~~~~~~~~~~~~~~~
+
+      - name: Dumping Source Code
+        uses: actions/checkout@v3
+
+# ~~~~~~~~~~~~~~~~~~~ Secret Scanning ~~~~~~~~~~~~~~~~~~~
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+
+  SCA:
+ 
+    runs-on: ubuntu-latest
+
+    steps:
+
+# ~~~~~~~~~~~~~~~~~~~ Dumping Code ~~~~~~~~~~~~~~~~~~~
+
+      - name: Dumping Source Code
+        uses: actions/checkout@v3
+
+#~~~~~~~~~~ Installing Dependencies ~~~~~~~~~~
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'
+      
+      - name: Install dependencies
+        run: npm install
+
+#~~~~~~~~~~ Running Dependency Scan ~~~~~~~~~~
+        
+      - name: Dependency Scan
+        uses: ShiftLeftSecurity/scan-action@master
+        with:
+          type: "credscan,depscan"
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+#~~~~~~~~~~ Uploading Results ~~~~~~~~~~
+
+      - name: Uploading Scan Reports 
+        uses: actions/upload-artifact@v1
+        with:
+          name: Dependency-and-Secret-Reports
+          path: reports
+
 
   Deploy-Server:
  
